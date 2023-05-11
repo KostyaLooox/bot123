@@ -6,7 +6,7 @@ import os
 import json
 
 
-bot = telebot.TeleBot('')
+bot = telebot.TeleBot('6052814727:AAE1et970RN7GVJXxUzwgwpeTh-BQj__y00')
 
 @bot.message_handler(commands=['start'])
 def start(message):
@@ -29,21 +29,23 @@ def start(message):
     ma.add(p99)
     bot.send_message(message.chat.id, ")))", reply_markup=ma)
     num = sum(1 for line in open('10.json'))
-    m = bot.send_message(message.chat.id, f'Напиши мне код от 1 до {num}', parse_mode='html')
+    w = num - 6
+    m = bot.send_message(message.chat.id, f'Напиши мне код от 1 до {w}', parse_mode='html')
     bot.register_next_step_handler(m, test)
 
 def test(message):
     y = message.text
     num = sum(1 for line in open('10.json'))
-    if str(y) <= str(num):
+    d = num - 6
+    if int(y) <= d:
         with open('10.json', 'r', encoding='utf8') as f:
             s = json.load(f)
             l = str(y)
             for i in range(len(s.get('an'))):
                 k = s.get('an')[i]
-                bot.send_message(message.chat.id, 'Название: ' + str(k.get(y)))
+                bot.send_message(message.chat.id, 'Название: ' + str(k.get(y)) + ' Еще раз /kod')
     else:
-        bot.send_message(message.chat.id, "Мда, перезапусти /kod")
+        bot.send_message(message.chat.id, 'Еще раз /kod')
 
 
 @bot.message_handler()
