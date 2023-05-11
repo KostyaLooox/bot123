@@ -4,9 +4,22 @@ from telebot import types
 import random
 import os
 import json
+from pyowm import OWM
 
+bot = telebot.TeleBot('')
 
-bot = telebot.TeleBot('6052814727:AAE1et970RN7GVJXxUzwgwpeTh-BQj__y00')
+def get_location(lat, lon):
+    url=f"https://yandex.ru/pogoda/maps/nowcast?lat={lat}&lon={lon}&via=hnav&le_Lightning=1"
+    return url
+
+def weather(city: str):
+    owm=OWM("482833602a3b416d53c156c563297579")
+    mgr=owm.weather_manager()
+    observation=mgr.weather_at_place(city)
+    weather=observation.weather
+    location=get_location(observation.location.lat, observation.location.lon)
+    temperature=weather.temperature("celsius")
+    return temperature, location
 
 @bot.message_handler(commands=['start'])
 def start(message):
@@ -16,10 +29,11 @@ def start(message):
 
 @bot.message_handler(commands=['naw'])
 def website(message):
-    ma = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+    ma = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=3)
     p1 = types.KeyboardButton('Фильмы')
     p2 = types.KeyboardButton('Картинки')
-    ma.add(p1, p2)
+    p3 = types.KeyboardButton('Погода')
+    ma.add(p1, p2, p3)
     bot.send_message(message.chat.id, "Выбери что ты хочешь и наслаждайся)", reply_markup=ma)
 
 @bot.message_handler(commands=['kod'])
@@ -73,6 +87,10 @@ def get_user_text(message):
         ma.add(p55, p99)
         bot.send_message(message.chat.id, "Ой погода", reply_markup=ma)
 
+    if message.text == "дай погоду":
+        bot.send_message(message.from_user.id, "Введите название города")
+        bot.register_next_step_handler(message, get_weather)
+
     if message.text == "Рандом дед инсайд":
         i = "C:/Users/60kar/Desktop/Bot/ded"
         f = os.listdir(i)
@@ -105,10 +123,21 @@ def get_user_text(message):
 
 
     if message.text == "Назад":
-        ma = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+        ma = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=3)
         p1 = types.KeyboardButton('Фильмы')
         p2 = types.KeyboardButton('Картинки')
-        ma.add(p1, p2)
+        p3 = types.KeyboardButton('Погода')
+        ma.add(p1, p2, p3)
         bot.send_message(message.chat.id, "Выбери что ты хочешь и наслаждайся)", reply_markup=ma)
+
+def get_weather(message):
+    city=message.text
+    try:
+        w=weather(city)
+        bot.send_message(message.from_user.id, f"В городе {city} сейчас {round( w[0]['temp'] ) } градусов, "f" чувствуется как {round(w[0]['feels_like'])} градусов. Чтобы проверить другой город напиши дай погоду)")
+    except Exception:
+        bot.send_message(message.from_user.id, "Такого города нет в базе")
+        bot.send_message(message.from_user.id,"Введите название города")
+        bot.register_next_step_handler(message, get_weather)
 
 bot.polling(none_stop=True)
